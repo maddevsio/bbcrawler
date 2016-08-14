@@ -1,2 +1,2 @@
-# bbcrawler
-Bug Bounty Crawler
+# bbcrowler
+Bug Bounty Crowler
