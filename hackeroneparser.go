@@ -2,16 +2,16 @@ package bbcrawler
 
 import "encoding/json"
 
-type hackerOneBounty struct {
+type HackerOneBounty struct {
 	BugCount      int `json:"bug_count"`
 	MinimumBounty int `json:"minimum_bounty"`
 }
 
-type hackerOneRecord struct {
+type HackerOneRecord struct {
 	Id                int             `json:"id"`
 	Url               string          `json:"url"`
 	Name              string          `json:"name"`
-	Meta              hackerOneBounty `json:"meta"`
+	Meta              HackerOneBounty `json:"meta"`
 	About             string          `json:"about"`
 	StrippedPolicy    string          `json:"stripped_policy"`
 	Handle            string          `json:"handle"`
@@ -22,7 +22,7 @@ type hackerOneRecord struct {
 type HackerOneResponse struct {
 	Limit   int `json:"limit"`
 	Total   int `json:"total"`
-	Results []hackerOneRecord
+	Results []HackerOneRecord
 }
 
 type hackerOneParser struct{}
@@ -33,4 +33,4 @@ func (h hackerOneParser) Read(data []byte) (interface{}, error) {
 	return jsonResponse, err
 }
 
-var HackerOneParser = hackerOneParser{}
+var HackerOneParserInstance = &hackerOneParser{}

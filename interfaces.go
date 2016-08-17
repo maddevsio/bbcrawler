@@ -7,3 +7,8 @@ type Fetcher interface {
 type Reader interface {
 	Read(data []byte) (interface{}, error)
 }
+
+type Storer interface {
+	Store(data interface{}) error
+	GetNewRecords() interface{}
+}
