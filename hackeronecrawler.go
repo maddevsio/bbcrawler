@@ -1,9 +1,8 @@
 package bbcrawler
 
 import (
-	"sync"
 	"fmt"
-	"github.com/labstack/gommon/log"
+	"sync"
 )
 
 var (
@@ -17,9 +16,10 @@ const (
 type HackerOneCrawler struct {
 	sync.RWMutex
 	fetcher Fetcher
-	reader Reader
-	store Storer
-	pages map[int]*HackerOneResponse
+	reader  Reader
+	store   Storer
+	pages   map[int]*HackerOneResponse
+	Done    chan bool
 }
 
 func (h *HackerOneCrawler) hackerOneCrawl(url string, queryParams map[string]string) {
@@ -76,6 +76,8 @@ func (h *HackerOneCrawler) makeQuery(pageNum int) map[string]string {
 
 func (h *HackerOneCrawler) Crawl() {
 	wg.Add(1)
+	fmt.Println()
+	fmt.Println("Begin Hacker one crawl")
 	h.hackerOneCrawl(
 		HACKER_ONE_SEARCH_URL,
 		h.makeQuery(1))
@@ -84,23 +86,25 @@ func (h *HackerOneCrawler) Crawl() {
 	h.RLock()
 	defer h.RUnlock()
 
-	for i := 1; i < len(h.pages); i++{
+	for i := 1; i < len(h.pages); i++ {
 		response := h.pages[i]
 		h.store.Store(*response)
 	}
 
 	newRecords := h.store.GetNewRecords().([]HackerOneRecord)
 	if len(newRecords) > 0 {
-		log.Println("New records: ", len(newRecords))
-		log.Println("Content: ", newRecords)
+		fmt.Println("New records:", len(newRecords))
 	} else {
-		log.Println("No new records found")
+		fmt.Println()
+		fmt.Println("No new records found!")
 	}
+	h.Done <- true
 }
 
 var HackerOneCrawlerInstance = HackerOneCrawler{
-	fetcher:*HackerOneFetcherInstance,
-	reader:*HackerOneParserInstance,
-	store:*HackerOneStoreInstance,
-	pages:make(map[int]*HackerOneResponse),
+	fetcher: HackerOneFetcherInstance,
+	reader:  HackerOneParserInstance,
+	store:   HackerOneStoreInstance,
+	pages:   make(map[int]*HackerOneResponse),
+	Done:    make(chan bool),
 }

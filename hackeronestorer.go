@@ -1,28 +1,27 @@
 package bbcrawler
 
 import (
-	"github.com/syndtr/goleveldb/leveldb"
 	"encoding/json"
 	"fmt"
+	"github.com/boltdb/bolt"
 	"sync"
-)
-
-const (
-	PATH_TO_DB = "./hacker_one_db"
+	"time"
 )
 
 var (
-	WrongTypeOfDataError = func (msg string) error {return fmt.Errorf("WrongTypeError: %s", msg)}
+	PATH_TO_DB = "hacker_one.db"
 )
 
 type HackerOneStore struct {
-	PathToDb string
+	PathToDb   string
 	newRecords []HackerOneRecord
 	sync.RWMutex
 }
 
-func (h HackerOneStore) Store(data interface{}) error {
-	db, err := leveldb.OpenFile(h.PathToDb, nil)
+func (h *HackerOneStore) Store(data interface{}) error {
+	h.Lock()
+	defer h.Unlock()
+	db, err := bolt.Open(h.PathToDb, 0600, &bolt.Options{Timeout: 5 * time.Second})
 	defer db.Close()
 
 	if err != nil {
@@ -33,16 +32,26 @@ func (h HackerOneStore) Store(data interface{}) error {
 		for _, v := range response.Results {
 			fmt.Print(".")
 			jsonStr, _ := json.Marshal(v)
-			if found, err := h.existsRecord(db, v); !found {
-				h.Lock()
-				h.newRecords = append(h.newRecords, v)
-				h.Unlock()
-				fmt.Print("+")
-				err = db.Put([]byte("key"), jsonStr, nil)
+			db.Update(func(tx *bolt.Tx) error {
+				b, err := tx.CreateBucketIfNotExists([]byte("All"))
 				if err != nil {
-					return err
+					return fmt.Errorf("create All bucket: %s", err)
 				}
-			}
+				bn, err := tx.CreateBucketIfNotExists([]byte("New"))
+				if err != nil {
+					return fmt.Errorf("create New bucket: %s", err)
+				}
+				if b.Get([]byte(v.Handle)) == nil {
+					fmt.Print("+")
+					h.newRecords = append(h.newRecords, v)
+					err = b.Put([]byte(v.Handle), jsonStr)
+					if err != nil {
+						return err
+					}
+					return bn.Put([]byte(v.Handle), jsonStr)
+				}
+				return nil
+			})
 		}
 	}
 	return nil
@@ -51,16 +60,7 @@ func (h HackerOneStore) Store(data interface{}) error {
 func (h HackerOneStore) GetNewRecords() interface{} {
 	h.RLock()
 	defer h.RUnlock()
-	fmt.Println("Count new: ", len(h.newRecords))
 	return h.newRecords
 }
 
-func (h HackerOneStore) existsRecord(db *leveldb.DB, data interface{}) (bool, error) {
-	if rec, ok := data.(HackerOneRecord); ok {
-		r, e := db.Has([]byte(rec.Handle), nil)
-		return r, e
-	}
-	return false, WrongTypeOfDataError("Data should be HackerOneRecord type")
-}
-
-var HackerOneStoreInstance = &HackerOneStore{PathToDb: PATH_TO_DB, newRecords:make([]HackerOneRecord,0)}
+var HackerOneStoreInstance = &HackerOneStore{PathToDb: PATH_TO_DB, newRecords: make([]HackerOneRecord, 0)}

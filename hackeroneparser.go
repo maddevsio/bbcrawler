@@ -33,4 +33,4 @@ func (h hackerOneParser) Read(data []byte) (interface{}, error) {
 	return jsonResponse, err
 }
 
-var HackerOneParserInstance = &hackerOneParser{}
+var HackerOneParserInstance = hackerOneParser{}
