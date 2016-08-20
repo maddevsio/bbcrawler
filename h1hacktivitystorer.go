@@ -2,11 +2,11 @@ package bbcrawler
 
 import (
 	"encoding/json"
-	"github.com/boltdb/bolt"
 	"fmt"
+	"github.com/boltdb/bolt"
+	"strconv"
 	"sync"
 	"time"
-	"strconv"
 )
 
 const (
@@ -73,8 +73,20 @@ func (h *H1HacktivityStore) Store(data interface{}) error {
 				return nil
 			})
 		}
+	} else if rec, ok := data.(H1HactivityRecord); ok {
+		jsonStr, _ := json.Marshal(rec)
+		db.Update(func(tx *bolt.Tx) error {
+			b, err := tx.CreateBucketIfNotExists([]byte(HACKTIVITY_BACKET))
+			if err != nil {
+				return fmt.Errorf("create Hacktivity bucket: %s", err)
+			}
+			if b.Get([]byte(strconv.Itoa(rec.Id))) == nil {
+				return b.Put([]byte(strconv.Itoa(rec.Id)), jsonStr)
+			}
+			return nil
+		})
 	} else if !ok {
-		fmt.Println("Fail converting to H1HactivityResponse")
+		fmt.Println("Fail converting to H1HactivityResponse or H1ActivityRecord")
 	}
 	return nil
 }
@@ -90,4 +102,3 @@ func (h *H1HacktivityStore) Clear() {
 	defer h.Unlock()
 	h.newRecords = nil
 }
-

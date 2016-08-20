@@ -1,18 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"github.com/cyberlight/bbcrawler"
 	"time"
-	"fmt"
 )
 
 func main() {
 	config := &bbcrawler.HackerOneCrawlerConfig{
-		SearchUrl:     "URL",
+		SearchUrl:           "URL",
 		HacktivitySearchUrl: "URL",
-		PathToLocalDb: "DB",
-		FireBaseUrl:   "URL",
-		FireBaseToken: "TOKEN",
+		PathToLocalDb:       "DB",
+		FireBaseUrl:         "URL",
+		FireBaseToken:       "TOKEN",
 	}
 	crawler := bbcrawler.NewHackerOneCrowler(config)
 	h1HackCrawler := bbcrawler.NewH1HacktivityCrowler(config)
@@ -32,6 +32,7 @@ func main() {
 			doneCrawler = true
 		case <-h1HackCrawler.Done:
 			news := h1HackCrawler.GetNewRecords().([]bbcrawler.H1HactivityRecord)
+			fmt.Println()
 			fmt.Println("<=====New Records Hacktivity: ", len(news))
 			h1HackCrawler.ClearNewRecords()
 			doneH1Crawler = true

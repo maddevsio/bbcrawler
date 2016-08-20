@@ -1,9 +1,10 @@
 package bbcrawler
 
 import (
-	"sync"
 	"fmt"
+	"os"
 	"strconv"
+	"sync"
 )
 
 const (
@@ -11,8 +12,8 @@ const (
 )
 
 type H1HacktivityReporter struct {
-	Id int `json:"id"`
-	Url string `json:"url"`
+	Id       int    `json:"id"`
+	Url      string `json:"url"`
 	Username string `json:"username"`
 }
 
@@ -22,35 +23,35 @@ type H1HacktivityTeamProfile struct {
 
 type H1HacktivityTeamProfilePict struct {
 	Medium string `json:"medium"`
-	Small string `json:"small"`
+	Small  string `json:"small"`
 }
 
 type H1HacktivityTeam struct {
-	Handle string `json:"handle"`
-	Url string `json:"url"`
-	Profile H1HacktivityTeamProfile `json:"profile"`
+	Handle             string                      `json:"handle"`
+	Url                string                      `json:"url"`
+	Profile            H1HacktivityTeamProfile     `json:"profile"`
 	ProfilePictureUrls H1HacktivityTeamProfilePict `json:"profile_picture_urls"`
 }
 
 type H1HactivityRecord struct {
-	BountyDisclosed             bool `json:"bounty_disclosed"`
-	FormattedBounty             string `json:"formatted_bounty"`
-	Id                          int `json:"id"`
-	LatestDisclosableAction     string `json:"latest_disclosable_action"`
-	LatestDisclosableActivityAt string `json:"latest_disclosable_activity_at"`
-	ReadableSubstate            string `json:"readable_substate"`
+	BountyDisclosed             bool                 `json:"bounty_disclosed"`
+	FormattedBounty             string               `json:"formatted_bounty"`
+	Id                          int                  `json:"id"`
+	LatestDisclosableAction     string               `json:"latest_disclosable_action"`
+	LatestDisclosableActivityAt string               `json:"latest_disclosable_activity_at"`
+	ReadableSubstate            string               `json:"readable_substate"`
 	Reporter                    H1HacktivityReporter `json:"reporter"`
-	Substate                    string `json:"substate"`
-	Swag                        bool `json:"swag"`
-	Team                        H1HacktivityTeam `json:"team"`
-	Title                       string `json:"title"`
-	Url                         string `json:"url"`
-	VoteCount                   int `json:"vote_count"`
-	Voters                      []string `json:"voters"`
+	Substate                    string               `json:"substate"`
+	Swag                        bool                 `json:"swag"`
+	Team                        H1HacktivityTeam     `json:"team"`
+	Title                       string               `json:"title"`
+	Url                         string               `json:"url"`
+	VoteCount                   int                  `json:"vote_count"`
+	Voters                      []string             `json:"voters"`
 }
 
 type H1HactivityResponse struct {
-	Count int `json:"count"`
+	Count   int                 `json:"count"`
 	Reports []H1HactivityRecord `json:"reports"`
 }
 
@@ -67,11 +68,13 @@ type H1HacktivityCrawler struct {
 
 func (h *H1HacktivityCrawler) Crawl() {
 	fmt.Println("Check database consistancy Hacktivity")
-	//if _, err := os.Stat(h.config.PathToLocalDb); os.IsNotExist(err) {
-	//	h.syncDb()
-	//} else if empty, err := h.store.IsEmpty(); empty && err == nil {
-	//	h.syncDb()
-	//}
+	if _, err := os.Stat(h.config.PathToLocalDb); os.IsNotExist(err) {
+		h.syncDb()
+	} else if empty, err := h.store.IsEmpty(); empty && err == nil {
+		h.syncDb()
+	} else if err != nil {
+		fmt.Println("<===== Sync error: ", err)
+	}
 
 	data, err := h.fetcher.Fetch(h.config.HacktivitySearchUrl, h.makeQuery(1))
 	if err != nil {
