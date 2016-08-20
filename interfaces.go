@@ -11,4 +11,11 @@ type Reader interface {
 type Storer interface {
 	Store(data interface{}) error
 	GetNewRecords() interface{}
+	IsEmpty() (bool, error)
+	Clear()
+}
+
+type FireBaseSyncer interface {
+	Write(data interface{}, path string) error
+	Read(data interface{}, path string) error
 }

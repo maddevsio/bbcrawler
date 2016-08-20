@@ -28,5 +28,3 @@ func (ho hackerOneFetcher) Fetch(fetchUrl string, params map[string]string) ([]b
 	defer res.Body.Close()
 	return ioutil.ReadAll(res.Body)
 }
-
-var HackerOneFetcherInstance = hackerOneFetcher{}

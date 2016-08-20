@@ -32,5 +32,3 @@ func (h hackerOneParser) Read(data []byte) (interface{}, error) {
 	err := json.Unmarshal(data, &jsonResponse)
 	return jsonResponse, err
 }
-
-var HackerOneParserInstance = hackerOneParser{}
