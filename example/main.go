@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/cyberlight/bbcrawler"
 	"time"
+	"fmt"
 )
 
 func main() {
@@ -19,6 +20,9 @@ func main() {
 	for {
 		select {
 		case <-crawler.Done:
+			news := crawler.GetNewRecords().([]bbcrawler.HackerOneRecord)
+			fmt.Println()
+			fmt.Println("<=====New Records: ", len(news))
 			crawler.ClearNewRecords()
 			done = true
 		case <-time.After(1 * time.Minute):

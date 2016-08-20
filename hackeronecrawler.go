@@ -139,6 +139,10 @@ func (h HackerOneCrawler) ClearNewRecords() {
 	h.store.Clear()
 }
 
+func (h HackerOneCrawler) GetNewRecords() interface{} {
+	return h.store.GetNewRecords()
+}
+
 func NewHackerOneCrowler(config *HackerOneCrawlerConfig) *HackerOneCrawler {
 	return &HackerOneCrawler{
 		fetcher: hackerOneFetcher{},
