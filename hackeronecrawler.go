@@ -167,4 +167,5 @@ type HackerOneCrawlerConfig struct {
 	PathToLocalDb string
 	FireBaseUrl   string
 	FireBaseToken string
+	HacktivitySearchUrl string
 }
